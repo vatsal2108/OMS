@@ -1,11 +1,11 @@
-const { Product } = require("../database/config");
+const { Product } = require("../models");
 
 exports.createProduct = async (req, res) => {
   try {
     const { name, wsCode, salesPrice, mrp, packageSize, tags, categoryId } = req.body;
-
+    
     const imageUrls = req.files.map((file) => file.path);
-
+    
     const product = await Product.create({
       name,
       wsCode,
