@@ -1,10 +1,20 @@
-const { Cart,Product } = require('../models');
-// console.log(Product);
-// console.log(Cart);
+const jwt = require('jsonwebtoken'); // Import jwt for decoding the token
+const { Product, Cart } = require('../models'); // Assuming you have your models properly set up
+
 exports.addToCart = async (req, res) => {
   try {
-    const { userId, productId, quantity } = req.body;
+    // Decode the token from the Authorization header
+    const token = req.headers.authorization.split(' ')[1]; // Assuming the token is passed as "Bearer <token>"
 
+    if (!token) {
+      return res.status(401).json({ error: 'Authorization token is missing' });
+    }
+
+    const decoded = jwt.verify(token, "secret"); // Verify and decode the token
+    const userId = decoded.userId; // Extract the userId from the token
+
+    const { productId, quantity } = req.body;
+    // console.log(req.body);
     // Fetch the product to check its stockQuantity
     const product = await Product.findByPk(productId);
     if (!product) {
@@ -46,6 +56,7 @@ exports.addToCart = async (req, res) => {
 };
 
 
+
 // Add a product to the cart
 // exports.addToCart = async (req, res) => {
 //   try {
@@ -76,7 +87,14 @@ exports.addToCart = async (req, res) => {
 // Get the cart for a user
 exports.getCart = async (req, res) => {
   try {
-    const { userId } = req.params;
+    const token = req.headers.authorization.split(' ')[1]; // Assuming the token is passed as "Bearer <token>"
+
+    if (!token) {
+      return res.status(401).json({ error: 'Authorization token is missing' });
+    }
+
+    const decoded = jwt.verify(token, "secret"); // Verify and decode the token
+    const userId = decoded.userId; // Extract the userId from the token
 
     const cartItems = await Cart.findAll({
       where: { userId },
@@ -92,9 +110,9 @@ exports.getCart = async (req, res) => {
 // Remove a product from the cart
 exports.removeFromCart = async (req, res) => {
   try {
-    const { userId, productId } = req.params;
+    const { productId } = req.params;
 
-    const cartItem = await Cart.findOne({ where: { userId, productId } });
+    const cartItem = await Cart.findOne({ where: { productId } });
     if (!cartItem) {
       return res.status(404).json({ error: 'Product not found in cart' });
     }
